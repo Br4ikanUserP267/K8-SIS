@@ -1,10 +1,10 @@
-# 🏥 Historia Clínica Distribuida con PostgreSQL + Citus en Minikube
+# Historia Clínica Distribuida con PostgreSQL + Citus en Minikube
 
 Este laboratorio implementa una solución de base de datos distribuida para almacenar historias clínicas usando PostgreSQL con la extensión Citus. El despliegue se realiza sobre Minikube (entorno Kubernetes local), simulando un entorno productivo y escalable.
 
 ---
 
-## 🎯 Objetivo
+##  Objetivo
 
 - Desplegar un clúster PostgreSQL-Citus (1 Coordinator + 2 Workers)
 - Fragmentar automáticamente la tabla `usuario` por `documento_id`
@@ -13,7 +13,7 @@ Este laboratorio implementa una solución de base de datos distribuida para alma
 
 ---
 
-## ⚙️ Requisitos
+## Requisitos
 
 - [Minikube](https://minikube.sigs.k8s.io/)
 - `kubectl` configurado localmente
@@ -22,7 +22,7 @@ Este laboratorio implementa una solución de base de datos distribuida para alma
 
 ---
 
-## 🗂️ Estructura
+## Estructura
 
 ```
 k8s/
@@ -37,7 +37,7 @@ k8s/
 
 ---
 
-## 🚀 Instrucciones de despliegue
+## Instrucciones de despliegue
 
 1. **Inicia Minikube:**
 
@@ -77,7 +77,7 @@ Deberías ver un listado de usuarios cargados desde la tabla `usuario`.
 
 ---
 
-## 📌 Notas adicionales
+## Notas adicionales
 
 - Puedes escalar horizontalmente los workers con:
 
@@ -89,7 +89,7 @@ kubectl scale deploy citus-worker-1 --replicas=2
 
 ---
 
-## 👨‍🏫 Uso en el aula
+## Uso en el aula
 
 Este laboratorio está pensado para clases de:
 - Bases de datos distribuidas
