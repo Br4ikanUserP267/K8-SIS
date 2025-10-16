@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: middleware-citus
+data:
+  middleware_citus.py: |
+    import psycopg2
+    from psycopg2.extras import RealDictCursor
+
+    def ejecutar_query():
+        conn = psycopg2.connect(
+            host="citus-coordinator",
+            port=5432,
+            user="admin",
+            password="admin",
+            dbname="historia_clinica"
+        )
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        cur.execute("SELECT * FROM usuario LIMIT 10;")
+        filas = cur.fetchall()
+        for f in filas:
+            print(f)
+        conn.close()
+
+    if __name__ == "__main__":
+        ejecutar_query()

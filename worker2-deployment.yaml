@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: citus-worker-2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: citus
+      role: worker2
+  template:
+    metadata:
+      labels:
+        app: citus
+        role: worker2
+    spec:
+      containers:
+        - name: worker2
+          image: citusdata/citus:11.2
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: admin
+            - name: POSTGRES_PASSWORD
+              value: admin
+            - name: POSTGRES_DB
+              value: historia_clinica

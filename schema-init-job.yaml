@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: init-schema
+spec:
+  template:
+    spec:
+      containers:
+        - name: init
+          image: citusdata/citus:11.2
+          command: ["sh", "-c"]
+          args:
+            - psql -h citus-coordinator -U admin -d historia_clinica -f /sql/schema_citus.sql &&
+              psql -h citus-coordinator -U admin -d historia_clinica -f /sql/insert_datos.sql
+          env:
+            - name: PGPASSWORD
+              value: admin
+          volumeMounts:
+            - name: sql-volume
+              mountPath: /sql
+      restartPolicy: OnFailure
+      volumes:
+        - name: sql-volume
+          configMap:
+            name: citus-sql-files

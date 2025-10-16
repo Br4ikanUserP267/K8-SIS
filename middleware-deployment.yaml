@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: middleware-citus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: middleware
+  template:
+    metadata:
+      labels:
+        app: middleware
+    spec:
+      containers:
+        - name: middleware
+          image: python:3.9
+          command: ["python", "/app/middleware_citus.py"]
+          volumeMounts:
+            - name: middleware-code
+              mountPath: /app
+      volumes:
+        - name: middleware-code
+          configMap:
+            name: middleware-citus

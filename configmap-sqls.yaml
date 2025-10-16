@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: citus-sql-files
+data:
+  schema_citus.sql: |
+    -- Aquí se colocaría el contenido real del esquema (truncado por brevedad)
+    CREATE TABLE usuario (
+      documento_id BIGINT,
+      nombre_completo TEXT,
+      edad INT
+    );
+    SELECT create_distributed_table('usuario', 'documento_id');
+
+  insert_datos.sql: |
+    INSERT INTO usuario (documento_id, nombre_completo, edad)
+    VALUES (1072319876, 'Luis Herrera', 56),
+           (1078912345, 'Ana María Soto', 34);
