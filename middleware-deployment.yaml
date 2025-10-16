@@ -15,10 +15,24 @@ spec:
       containers:
         - name: middleware
           image: python:3.9
-          command: ["python", "/app/middleware_citus.py"]
+          command: ["sh", "-c", "pip install psycopg2-binary flask && python /app/middleware_citus.py"]
+          ports:
+            - containerPort: 8080
+          env:
+            - name: POSTGRES_HOST
+              value: "citus-coordinator"
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_USER
+              value: "admin"
+            - name: POSTGRES_PASSWORD
+              value: "admin"
+            - name: POSTGRES_DB
+              value: "historia_clinica"
           volumeMounts:
             - name: middleware-code
               mountPath: /app
+      restartPolicy: Always
       volumes:
         - name: middleware-code
           configMap:

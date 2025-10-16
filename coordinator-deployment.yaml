@@ -6,23 +6,47 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: citus
-      role: coordinator
+      app: citus-coordinator
   template:
     metadata:
       labels:
-        app: citus
-        role: coordinator
+        app: citus-coordinator
     spec:
       containers:
-        - name: coordinator
-          image: citusdata/citus:11.2
+        - name: citus-coordinator
+          image: citusdata/citus:12.1
           ports:
             - containerPort: 5432
           env:
             - name: POSTGRES_USER
-              value: admin
+              value: "admin"
             - name: POSTGRES_PASSWORD
-              value: admin
+              value: "admin"
             - name: POSTGRES_DB
-              value: historia_clinica
+              value: "historia_clinica"
+            - name: PGUSER
+              value: "admin"
+            - name: PGPASSWORD
+              value: "admin"
+            - name: PGDATABASE
+              value: "historia_clinica"
+          volumeMounts:
+            - name: postgres-sqls
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: postgres-sqls
+          configMap:
+            name: postgres-sqls
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: citus-coordinator
+spec:
+  selector:
+    app: citus-coordinator
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+  type: ClusterIP

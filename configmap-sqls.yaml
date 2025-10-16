@@ -1,18 +1,111 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: citus-sql-files
+  name: postgres-sqls
 data:
-  schema_citus.sql: |
-    -- Aquí se colocaría el contenido real del esquema (truncado por brevedad)
-    CREATE TABLE usuario (
-      documento_id BIGINT,
-      nombre_completo TEXT,
-      edad INT
+  01-init-citus.sql: |
+    -- Extensión Citus
+    CREATE EXTENSION IF NOT EXISTS citus;
+    
+    -- Crear esquema de historia clínica
+    CREATE SCHEMA IF NOT EXISTS historia_clinica;
+    
+    -- Tabla de usuarios
+    CREATE TABLE IF NOT EXISTS usuario (
+        id SERIAL PRIMARY KEY,
+        nombre VARCHAR(100) NOT NULL,
+        email VARCHAR(100) UNIQUE NOT NULL,
+        fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
-    SELECT create_distributed_table('usuario', 'documento_id');
-
-  insert_datos.sql: |
-    INSERT INTO usuario (documento_id, nombre_completo, edad)
-    VALUES (1072319876, 'Luis Herrera', 56),
-           (1078912345, 'Ana María Soto', 34);
+    
+    -- Tabla de pacientes (distribuida)
+    CREATE TABLE IF NOT EXISTS pacientes (
+        id SERIAL,
+        nombre VARCHAR(100) NOT NULL,
+        apellido VARCHAR(100) NOT NULL,
+        cedula VARCHAR(20) NOT NULL,
+        fecha_nacimiento DATE,
+        telefono VARCHAR(20),
+        direccion TEXT,
+        ciudad VARCHAR(50),
+        fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id, cedula),
+        UNIQUE (cedula)
+    );
+    
+    -- Tabla de médicos
+    CREATE TABLE IF NOT EXISTS medicos (
+        id SERIAL PRIMARY KEY,
+        nombre VARCHAR(100) NOT NULL,
+        apellido VARCHAR(100) NOT NULL,
+        especialidad VARCHAR(100),
+        codigo_medico VARCHAR(20) UNIQUE NOT NULL,
+        telefono VARCHAR(20),
+        email VARCHAR(100),
+        fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    
+    -- Tabla de consultas médicas (distribuida)
+    CREATE TABLE IF NOT EXISTS consultas (
+        id SERIAL,
+        paciente_id INTEGER,
+        paciente_cedula VARCHAR(20),
+        medico_id INTEGER REFERENCES medicos(id),
+        fecha_consulta TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        diagnostico TEXT,
+        tratamiento TEXT,
+        observaciones TEXT,
+        estado VARCHAR(20) DEFAULT 'activa',
+        PRIMARY KEY (id, paciente_id)
+    );
+    
+    -- Datos de ejemplo para usuarios
+    INSERT INTO usuario (nombre, email) VALUES
+    ('Admin Sistema', 'admin@hospital.com'),
+    ('Dr. Juan Pérez', 'juan.perez@hospital.com'),
+    ('Enfermera María', 'maria.lopez@hospital.com'),
+    ('Recepcionista Ana', 'ana.garcia@hospital.com'),
+    ('Dr. Carlos Ruiz', 'carlos.ruiz@hospital.com')
+    ON CONFLICT (email) DO NOTHING;
+    
+    -- Datos de ejemplo para médicos
+    INSERT INTO medicos (nombre, apellido, especialidad, codigo_medico, telefono, email) VALUES
+    ('Juan', 'Pérez', 'Medicina General', 'MED001', '555-0101', 'juan.perez@hospital.com'),
+    ('María', 'González', 'Cardiología', 'MED002', '555-0102', 'maria.gonzalez@hospital.com'),
+    ('Carlos', 'Ruiz', 'Pediatría', 'MED003', '555-0103', 'carlos.ruiz@hospital.com'),
+    ('Ana', 'Martínez', 'Ginecología', 'MED004', '555-0104', 'ana.martinez@hospital.com'),
+    ('Luis', 'Hernández', 'Neurología', 'MED005', '555-0105', 'luis.hernandez@hospital.com')
+    ON CONFLICT (codigo_medico) DO NOTHING;
+    
+    -- Datos de ejemplo para pacientes
+    INSERT INTO pacientes (nombre, apellido, cedula, fecha_nacimiento, telefono, direccion, ciudad) VALUES
+    ('Pedro', 'Ramírez', '12345678', '1980-05-15', '555-1001', 'Calle 123 #45-67', 'Bogotá'),
+    ('Laura', 'Silva', '23456789', '1985-08-20', '555-1002', 'Carrera 45 #12-34', 'Medellín'),
+    ('Jorge', 'Torres', '34567890', '1975-12-10', '555-1003', 'Avenida 80 #23-45', 'Cali'),
+    ('Carmen', 'Vargas', '45678901', '1990-03-25', '555-1004', 'Calle 67 #89-01', 'Barranquilla'),
+    ('Roberto', 'Morales', '56789012', '1988-07-30', '555-1005', 'Carrera 12 #34-56', 'Cartagena'),
+    ('Sofia', 'Díaz', '67890123', '1982-11-18', '555-1006', 'Calle 98 #76-54', 'Bucaramanga'),
+    ('Miguel', 'Castro', '78901234', '1979-04-22', '555-1007', 'Avenida 15 #67-89', 'Pereira'),
+    ('Elena', 'Rojas', '89012345', '1992-09-14', '555-1008', 'Carrera 78 #90-12', 'Manizales'),
+    ('Daniel', 'Mendoza', '90123456', '1986-06-08', '555-1009', 'Calle 34 #56-78', 'Ibagué'),
+    ('Lucía', 'Ortega', '01234567', '1991-01-12', '555-1010', 'Avenida 67 #45-23', 'Santa Marta')
+    ON CONFLICT (cedula) DO NOTHING;
+    
+    -- Datos de ejemplo para consultas
+    INSERT INTO consultas (paciente_id, paciente_cedula, medico_id, diagnostico, tratamiento, observaciones) VALUES
+    (1, '12345678', 1, 'Hipertensión arterial', 'Medicamento antihipertensivo', 'Control en 3 meses'),
+    (2, '23456789', 2, 'Arritmia cardíaca', 'Betabloqueadores', 'Seguimiento cardiológico'),
+    (3, '34567890', 3, 'Control de crecimiento', 'Vitaminas', 'Desarrollo normal'),
+    (4, '45678901', 4, 'Control prenatal', 'Ácido fólico', 'Embarazo normal'),
+    (5, '56789012', 5, 'Migraña crónica', 'Analgésicos', 'Evitar factores desencadenantes'),
+    (6, '67890123', 1, 'Diabetes tipo 2', 'Metformina', 'Dieta y ejercicio'),
+    (7, '78901234', 2, 'Insuficiencia cardíaca', 'Diuréticos', 'Control estricto'),
+    (8, '89012345', 3, 'Vacunación', 'Vacunas según edad', 'Esquema completo'),
+    (9, '90123456', 4, 'Infección urinaria', 'Antibióticos', 'Abundantes líquidos'),
+    (10, '01234567', 5, 'Epilepsia', 'Anticonvulsivantes', 'No suspender medicación');
+    
+  02-setup-citus.sql: |
+    -- Script para configurar Citus después de que los workers estén conectados
+    -- Este archivo se ejecuta solo para crear la configuración básica
+    
+    -- No distribuir tablas aquí, se hará manualmente después
